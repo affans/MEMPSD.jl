@@ -1,0 +1,7 @@
+name = "MEMPSD"
+uuid = "a1713486-953e-4a59-a049-6507d55f162b"
+authors = ["Affan Shoukat <affan.shoukat@bluedot.global> and contributors"]
+version = "0.1.0"
+
+[compat]
+julia = "1"
