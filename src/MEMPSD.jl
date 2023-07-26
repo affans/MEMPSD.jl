@@ -16,7 +16,7 @@ module MEMPSD
     Compute the reflection coefficients of the time series `x`.
 
     Uses the Burg Algorithm to compute the reflection coefficients used to calculate the 
-    *prediction error vector* of the power spectral desntiy of the time series `x`. 
+    *prediction error vector* of the power spectral density of the time series `x`. 
     The order of the method (i.e. the number of coefficients) is given by 2N/ln(2N) 
     where N is the number of observed points. In future iterations, the order will be 
     selected by the minimization of a chosen loss method.
@@ -146,7 +146,8 @@ module MEMPSD
     function get_ar_coefficients(pred_filter) 
         # the ar coefficients are the reverse negative of the prediction error coefficients 
         # from https://arxiv.org/abs/2106.09499
-        ar_coeff = -reverse(pred_filter[2:end]) 
+        #ar_coeff = -reverse(pred_filter[2:end]) 
+        ar_coeff = -reverse(pred_filter[2:end])
     end
 
 
@@ -166,13 +167,13 @@ module MEMPSD
         @assert M > 0; @assert length(data) > M 
     
         prediction_matrix = zeros(Float64, M + forecast_length, num_of_simulations)
-    
+       
         #initialize the prediction vector with p data points (since we need atleast p historic points for AR model)
         for i = 1:num_of_simulations
             prediction_matrix[1:M, i] .= data[(end - M + 1):end]
         end
 
-        display("x pred size: $(size(prediction_matrix)), P $P")
+        #display(" pred size: $(size(prediction_matrix)), P $P")
         # for the random noise with P as the variance of the AR model
         Random.seed!(123)
         ND = Normal(0, sqrt(P))
