@@ -2,6 +2,32 @@ using MEMPSD
 using Test
 using Random
 using Distributions
+using DelimitedFiles
+
+# copy paste this into the main module for testing interactively when developing
+function compare_with_memspectrum() 
+    data = readdlm("./src/data_gen_memspec.csv")[:, 1] # since file is read as a matrix 
+    tsd = TimeSeriesData(data)
+    reflection_coefficients = burg(tsd)
+    PSD = compute_PSD(tsd)
+    (;prediction_error_coefficients, ar_coefficients, scale_factor, optimal_order) = PSD
+    println("sum of reflection coefficients: $(sum(reflection_coefficients))")
+    println("first three aks: $(prediction_error_coefficients[1:3])")
+    println("length ar: $(length(ar_coefficients))")
+    println("optimal oprder: $(optimal_order)")
+
+    ff = forecast(tsd, PSD, 10, 5, false)
+    display(ff) 
+
+    println("compute spectrum") 
+    freq, spec = spectrum(tsd, PSD)
+    #println("scale factors: sum: $(sum(scale_factors)) data: $(scale_factors[1:4])")
+    #println("errors: sum: $(sum(errors)) data: $(errors[1:4])")
+    #println("optimal order: $(optimal_order),  error at optimized order: $(errors[optimal_order])")
+end
+
+println("$(pwd())")
+
 
 # TO BE DONE 
 
