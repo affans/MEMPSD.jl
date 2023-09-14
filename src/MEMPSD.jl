@@ -6,7 +6,7 @@ module MEMPSD
     using Random
     using DelimitedFiles 
 
-    export burg, PSD, forecast, spectrum
+    export burg, PSD, forecast, spectrum, compute_PSD_coefficients
     
     poplast!(x) = pop!(x) # just for consistency with popfirst!
 
@@ -115,7 +115,7 @@ module MEMPSD
 
     The returned object `PSD` can be used as an input to the `forecast()` function to forecast the time series data.
     """
-    function compute_PSD(tsd::TimeSeriesData) 
+    function compute_PSD_coefficients(tsd::TimeSeriesData) 
         # The reflection coefficients from the Burg Algorithm 
         # are used to compute the vector of prediction errors 
         # The vector of prediction errors are the partial autocorrelation coefficients scaled by –1 ??    
@@ -159,7 +159,6 @@ module MEMPSD
         PSD(ak_optimal, ar_coefficients, sf_optimal, optimal_order)
         #return ak, scale_factors, errors, optimal_order
     end
-
 
     """
         forecast(tsd::TimeSeriesData, psd::PSD, forecast_length, [num_of_simulations = 1000, add_noise = true])
@@ -219,23 +218,28 @@ module MEMPSD
     and negative frequencies and `freq`, the frequencies at which spectrum is evaluated 
     (as provided by `fftfreq`) 
     """
-    function spectrum(tsd::TimeSeriesData, psd::PSD) 
-        dt = 0.1
+    function spectrum(tsd::TimeSeriesData, psd::PSD, dt=1, onesided=true) 
         #pred_filter, P, optim_order = compute_prediction_effor_coefficients(x)
         (;prediction_error_coefficients, ar_coefficients, scale_factor, optimal_order) = psd
         N = tsd.N
         coeff = vcat(prediction_error_coefficients, zeros(N-length(prediction_error_coefficients))) # pad the prediction error coefficients
         den = fft(coeff)
         spec = @. (scale_factor * dt) / abs(den)^2
-        freq = fftfreq(N, dt)
-
+        freq = fftfreq(N, 1/dt) # second arg here is the sampling rate (1/dt)
+        
         println("""
+        DEBUG SPECTRUM
             sum ak: $(sum(prediction_error_coefficients))
             sum coeff: $(sum(coeff))
             sum den: $(sum(den))
             length den: $(length(den))
             sum spec: $(sum(spec))
         """)
+
+        if onesided 
+            spec = spec[1:(N ÷ 2)] .* sqrt(2)
+            freq = freq[1:(N ÷ 2)]
+        end
         return (;freq, spec)
     end
     
